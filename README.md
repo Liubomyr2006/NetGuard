@@ -42,7 +42,7 @@ The first version can resolve a hostname and check whether it is reachable.
 ## Roadmap
 
 * [x] Basic host check
-* [ ] Port scanner
+* [x] Port scanner
 * [ ] Service detection
 * [ ] Multithreading
 * [ ] JSON reports
