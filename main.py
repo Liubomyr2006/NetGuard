@@ -31,6 +31,23 @@ def check_host(host):                            #Check if the host is online or
         return None
 
 
+def get_http_info(sock, host):
+     request = (
+          f'GET / HTTP/1.1\r\n'
+          f'Host: {host}\r\n'
+          f'Connection: close\r\n'
+          f'\r\n'
+     )
+
+     sock.sendall(request.encode())
+
+     response = sock.recv(4096).decode(errors='ignore')
+
+     print("HTTP Response:")
+     print(response[:500]) # Print the first 500 characters of the response
+    
+
+
 
 def scan_port(ip, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -41,6 +58,16 @@ def scan_port(ip, port):
         if result == 0:
             service = COMMON_PORTS.get(port, 'Unknown')
             print(f"Port {port} is open -> Service: {service}")
+
+            if port == 80:
+                get_http_info(sock, ip)
+                 
+
+            try:
+                banner = sock.recv(1024)
+                print(f'Banner: {banner.decode(errors='ignore').strip()}')
+            except socket.timeout:
+                print("No banner received.")
         
             sock.close()
 
