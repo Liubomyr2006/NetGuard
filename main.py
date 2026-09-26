@@ -10,10 +10,14 @@ COMMON_PORTS = {
     53: "DNS",
     80: "HTTP",
     110: "POP3",
+    135: "Microsoft RPC",
+    139: "NetBIOS",
     143: "IMAP",
     443: "HTTPS",
+    445: "SMB",
     3306: "MySQL",
     5432: "PostgreSQL",
+    8000: "HTTP",
     8080: "HTTP-Proxy",
 }  #List of common ports and their services
 
@@ -51,7 +55,7 @@ def get_http_info(sock, host):
 
 def scan_port(ip, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
+        sock.settimeout(2)  # Set a timeout for the connection attempt
 
         result = sock.connect_ex((ip, port))
 
@@ -59,16 +63,9 @@ def scan_port(ip, port):
             service = COMMON_PORTS.get(port, 'Unknown')
             print(f"Port {port} is open -> Service: {service}")
 
-            if port == 80:
+            if port in [80, 8000, 8080]:  # Check for HTTP ports
                 get_http_info(sock, ip)
                  
-
-            try:
-                banner = sock.recv(1024)
-                print(f'Banner: {banner.decode(errors='ignore').strip()}')
-            except socket.timeout:
-                print("No banner received.")
-        
             sock.close()
 
 
@@ -83,6 +80,6 @@ if __name__ == "__main__":                      #run the program
     if ip:
         print("\nstart port scanning...\n")
 
-with ThreadPoolExecutor(max_workers=50) as executor:
-        for port in range(start_port, end_port + 1):  # This is a list of common ports to scan
-            executor.submit(scan_port, ip, port)
+        with ThreadPoolExecutor(max_workers=50) as executor:
+             for port in range(start_port, end_port + 1):  # This is a list of common ports to scan
+                executor.submit(scan_port, ip, port)
