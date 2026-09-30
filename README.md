@@ -43,9 +43,9 @@ The first version can resolve a hostname and check whether it is reachable.
 
 * [x] Basic host check
 * [x] Port scanner
-* [ ] Service detection
+* [х] Service detection
 * [ ] Multithreading
-* [ ] JSON reports
+* [x] JSON reports
 * [ ] Logging
 * [ ] Unit tests
 * [ ] Docker
