@@ -43,7 +43,7 @@ The first version can resolve a hostname and check whether it is reachable.
 
 * [x] Basic host check
 * [x] Port scanner
-* [х] Service detection
+* [x] Service detection
 * [ ] Multithreading
 * [x] JSON reports
 * [ ] Logging
