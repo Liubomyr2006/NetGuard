@@ -2,15 +2,8 @@
 
 A lightweight Python network security scanner.
 
-## Features
 
-* Check whether a host is reachable
-* Resolve hostnames to IP addresses
-* Scan network ports
-* Display open ports
-* Generate scan results
-
-* NetGuard can currently in 0.6 version:
+## NetGuard can currently in 0.6 version:
 
 - Check whether a host is reachable
 - Resolve hostnames to IP addresses
@@ -21,6 +14,16 @@ A lightweight Python network security scanner.
 - Parse HTTP response information
 - Detect services independently from the port number
 - Save scan results to JSON
+
+
+## Features
+
+* Check whether a host is reachable
+* Resolve hostnames to IP addresses
+* Scan network ports
+* Display open ports
+* Generate scan results
+
 
 ## Technologies
 
