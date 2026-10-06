@@ -49,19 +49,8 @@ def check_host(host):                            #Check if the host is online or
         return None
 
 
-def get_http_info(sock, host):
-     request = (
-          f'GET / HTTP/1.1\r\n'
-          f'Host: {host}\r\n'
-          f'Connection: close\r\n'
-          f'\r\n'
-     )
-
-     sock.sendall(request.encode())
-
-     response = sock.recv(4096).decode(errors='ignore')
-
-     headers = response.split('\r\n\r\n')[0]  # Get the headers part of the response
+def get_http_info(response):
+     headers = response.split('\r\n\r\n')[0]               # Get the headers part of the response
      lines = headers.splitlines()
 
      http_info = {
@@ -71,19 +60,13 @@ def get_http_info(sock, host):
             'content_type': None,  
             'content_length': None
         }
-
-     print('\nHTTP Information:')
-
+     
      if lines:
          status_parts = lines[0].split(' ', 2)
 
          if len(status_parts) >= 3:         #for the case where the status line is malformed
              http_info['status_code'] = status_parts[1]
              http_info['status_message'] = status_parts[2]
-
-         print(f'   Status Code: {http_info["status_code"]}')
-         print(f'   Status Message: {http_info["status_message"]}')
-
 
      for line in lines[1:]:
          if ':' in line:
@@ -97,14 +80,135 @@ def get_http_info(sock, host):
 
              elif name.lower() == 'content-length':
                  http_info['content_length'] = value.strip()
-
-             if name.lower() in ['server', 'content-type', 'content-length']:
-                 print(f'   {name}: {value.strip()}')
                  
-     return http_info      
-                 
-      
+     return http_info  
 
+
+def detect_http(sock, host):
+    try:
+        request = (
+            f'GET / HTTP/1.1\r\n'
+            f'Host: {host}\r\n'
+            f'Connection: close\r\n'
+            f'\r\n'
+        )
+
+        sock.sendall(request.encode())
+
+        response = sock.recv(4096).decode(errors='ignore')
+
+        if response.startswith('HTTP/'):
+            return response
+
+    except socket.timeout:
+        return None
+
+    except OSError:
+        return None
+
+    return None
+  
+                 
+def get_banner(sock):
+    try:
+        sock.sendall(b'\r\n') # Send a newline to prompt a response
+        banner = sock.recv(1024).decode(errors='ignore').strip()
+
+        if banner:
+            return banner
+
+    except socket.timeout:
+        return None
+
+    except OSError:
+        return None
+
+    return None
+
+
+def detect_service(banner):
+    if not banner:
+        return None
+
+    banner_lower = banner.lower()
+
+    if 'ssh' in banner_lower:
+        return 'SSH'
+
+    if 'ftp' in banner_lower:
+        return 'FTP'
+
+    if 'smtp' in banner_lower:
+        return 'SMTP'
+
+    if 'mysql' in banner_lower:
+        return 'MySQL'
+
+    if 'postgresql' in banner_lower:
+        return 'PostgreSQL'
+
+    return None
+
+
+def detect_ftp(sock):
+    try:
+        response = sock.recv(1024).decode(errors='ignore').strip()
+
+        if response.startswith('220'):
+            return response
+
+    except socket.timeout:
+        return None
+
+    except OSError:
+        return None
+
+    return None
+
+
+def detect_ssh(sock):
+    try:
+        response = sock.recv(1024).decode(errors='ignore').strip()
+
+        if response.startswith('SSH-'):
+            return response
+
+    except socket.timeout:
+        return None
+
+    except OSError:
+        return None
+
+    return None
+
+
+def detect_smtp(sock):
+    try:
+        response = sock.recv(1024).decode(errors='ignore').strip()
+
+        if response.startswith('220'):
+            return response
+
+    except socket.timeout:
+        return None
+
+    except OSError:
+        return None
+
+    return None
+
+
+def probe_service(sock, host):
+    response = detect_http(sock, host)
+
+    if response:
+        return {
+            'type': 'http',
+            'data': response
+        }
+
+    return None
+    
 
 def scan_port(ip, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -113,19 +217,47 @@ def scan_port(ip, port):
         result = sock.connect_ex((ip, port))
 
         if result == 0:
-            service = COMMON_PORTS.get(port, 'Unknown')
-            print(f"Port {port} is open -> Service: {service}")
-            
+            print(f'Port {port} is open')
+
             result_data = {
-            'port': port,
-            'service': service
-        }
+                'port': port,
+                'service': None,
+                'banner': None
+            }
 
-        if port in [80, 8000, 8080]:
-            http_info = get_http_info(sock, ip)
-            result_data['http'] = http_info
+            probe_result = probe_service(sock, ip)
 
-        scan_results.append(result_data)
+            if probe_result:
+                if probe_result['type'] == 'http':
+                    print('   HTTP service detected.')
+
+                    result_data['service'] = 'HTTP'
+
+                    http_info = get_http_info(probe_result['data'])
+
+                    print('\nHTTP Information:')
+                    print(f'   Status Code: {http_info["status_code"]}')
+                    print(f'   Status Message: {http_info["status_message"]}')
+                    print(f'   Server: {http_info["server"]}')
+                    print(f'   Content-Type: {http_info["content_type"]}')
+                    print(f'   Content-Length: {http_info["content_length"]}')
+
+                    result_data['http_info'] = http_info
+
+                elif probe_result['type'] == 'banner':
+                    banner = probe_result['data']
+
+                    print(f'   Banner: {banner}')
+
+                    detected_service = detect_service(banner)
+
+                    if detected_service:
+                        print(f'   Detected Service: {detected_service}')
+                        result_data['service'] = detected_service
+
+                    result_data['banner'] = banner
+
+            scan_results.append(result_data)
 
         sock.close()
 
