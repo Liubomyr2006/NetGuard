@@ -1,78 +1,67 @@
 # NetGuard
 
-A lightweight Python network security scanner.
+NetGuard is a command-line TCP port scanner written in Python. It checks a specified port range and reports ports where a TCP connection succeeds.
 
+## Current features
 
-## NetGuard can currently in 0.6 version:
+- Scans a user-specified TCP port range on a hostname or IP address.
+- Supports IPv4 and IPv6 addresses resolved by the operating system.
+- Configurable connection timeout.
+- Reports open ports in the terminal.
+- Includes local unit tests for open and closed ports.
 
-- Check whether a host is reachable
-- Resolve hostnames to IP addresses
-- Scan TCP ports
-- Scan custom port ranges
-- Scan ports using multithreading
-- Detect HTTP services by sending an HTTP request
-- Parse HTTP response information
-- Detect services independently from the port number
-- Save scan results to JSON
+NetGuard currently checks TCP connectivity only. It does **not** identify services or versions, scan UDP ports, or guarantee that a failed connection means a port is closed; firewalls and network conditions can affect results. Scanning is sequential.
 
+## Requirements
 
-## Features
+- Python 3.14
 
-* Check whether a host is reachable
-* Resolve hostnames to IP addresses
-* Scan network ports
-* Display open ports
-* Generate scan results
+## Usage
 
+Run commands from the project root.
 
-## Technologies
+On Windows, if Python is not available as `python`, use its full path:
 
-* Python
-* Git
-* GitHub
-* Networking
-* TCP/IP
-
-## Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/Liubomyr2006/NetGuard.git
-cd NetGuard
+```powershell
+& "C:\Users\lolk1\AppData\Local\Python\pythoncore-3.14-64\python.exe" -m netguard localhost --ports 8000-9000
 ```
 
-Run the scanner:
+Scan a specific authorized host and port range:
 
-```bash
-python main.py
+```powershell
+& "C:\Users\lolk1\AppData\Local\Python\pythoncore-3.14-64\python.exe" -m netguard 192.0.2.10 --ports 20-100 --timeout 1.0
 ```
 
-## Project Status
+Replace `192.0.2.10` with a host you own or are explicitly authorized to test. The example address is reserved for documentation and is not a real target.
 
-Currently in development.
+Show available options:
 
-The first version can resolve a hostname and check whether it is reachable.
+```powershell
+& "C:\Users\lolk1\AppData\Local\Python\pythoncore-3.14-64\python.exe" -m netguard --help
+```
 
-## Roadmap
+`--ports` is required. Port ranges must be between 1 and 65535, with the start port less than or equal to the end port. `--timeout` is a positive number of seconds and defaults to `1.0`.
 
-- [x] Basic host check
-- [x] TCP port scanner
-- [x] Custom port range
-- [x] Multithreading
-- [x] HTTP service detection
-- [x] HTTP response parsing
-- [x] JSON reports
-- [ ] SSH detection
-- [ ] FTP detection
-- [ ] SMTP detection
-- [ ] Generic service detection
-- [ ] CLI arguments
-- [ ] Logging
-- [ ] Unit tests
-- [ ] Docker
-- [ ] CI/CD with GitHub Actions
+## Run the tests
 
-## Disclaimer
+From the project root:
 
-This project is intended for educational purposes and authorized security testing only.
+```powershell
+& "C:\Users\lolk1\AppData\Local\Python\pythoncore-3.14-64\python.exe" -m unittest discover -s tests -v
+```
+
+## Project structure
+
+```text
+netguard/
+    __main__.py
+    cli.py
+    scanner/
+        port_scanner.py
+tests/
+    test_port_scanner.py
+```
+
+## Authorized use
+
+Use NetGuard only on systems and networks you own or have explicit permission to test. You are responsible for following applicable laws, policies, and rules of engagement.
