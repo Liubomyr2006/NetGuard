@@ -19,7 +19,7 @@ def resolve_addresses(target: str) -> list[str]:
             addresses.append(address)
 
     if not addresses:
-        raise ValueError('NO ip addresses found for target {target!r}')
+        raise ValueError(f'No IP addresses found for target {target!r}')
 
     return addresses
 
