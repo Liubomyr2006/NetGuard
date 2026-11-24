@@ -1,67 +1,159 @@
 # NetGuard
 
-NetGuard is a command-line TCP port scanner written in Python. It checks a specified port range and reports ports where a TCP connection succeeds.
+**A Python-based network security and port scanning tool.**
 
-## Current features
+NetGuard is an educational cybersecurity project designed to explore network scanning, TCP connections, security-oriented programming, and modular Python architecture.
 
-- Scans a user-specified TCP port range on a hostname or IP address.
-- Supports IPv4 and IPv6 addresses resolved by the operating system.
-- Configurable connection timeout.
-- Reports open ports in the terminal.
-- Includes local unit tests for open and closed ports.
+The project focuses on building a reliable and maintainable port scanner with structured scan results, input validation, and automated testing.
 
-NetGuard currently checks TCP connectivity only. It does **not** identify services or versions, scan UDP ports, or guarantee that a failed connection means a port is closed; firewalls and network conditions can affect results. Scanning is sequential.
+## Features
 
-## Requirements
+- **TCP Port Scanning** — Scan a specified host across a configurable port range.
+- **Concurrent Scanning** — Use Python's `ThreadPoolExecutor` for efficient port scanning.
+- **Port Validation** — Validate port numbers and connection timeouts.
+- **Structured Results** — Represent scan outcomes using dedicated `ScanResult` and `ScanState` models.
+- **Scan States** — Distinguish between open, closed, and error states.
+- **CLI Interface** — Interact with the scanner through a command-line interface.
+- **Automated Testing** — Unit tests for scanner functionality and result handling.
 
-- Python 3.14
-
-## Usage
-
-Run commands from the project root.
-
-On Windows, if Python is not available as `python`, use its full path:
-
-```powershell
-& "C:\Users\lolk1\AppData\Local\Python\pythoncore-3.14-64\python.exe" -m netguard localhost --ports 8000-9000
-```
-
-Scan a specific authorized host and port range:
-
-```powershell
-& "C:\Users\lolk1\AppData\Local\Python\pythoncore-3.14-64\python.exe" -m netguard 192.0.2.10 --ports 20-100 --timeout 1.0
-```
-
-Replace `192.0.2.10` with a host you own or are explicitly authorized to test. The example address is reserved for documentation and is not a real target.
-
-Show available options:
-
-```powershell
-& "C:\Users\lolk1\AppData\Local\Python\pythoncore-3.14-64\python.exe" -m netguard --help
-```
-
-`--ports` is required. Port ranges must be between 1 and 65535, with the start port less than or equal to the end port. `--timeout` is a positive number of seconds and defaults to `1.0`.
-
-## Run the tests
-
-From the project root:
-
-```powershell
-& "C:\Users\lolk1\AppData\Local\Python\pythoncore-3.14-64\python.exe" -m unittest discover -s tests -v
-```
-
-## Project structure
+## Project Structure
 
 ```text
-netguard/
-    __main__.py
-    cli.py
-    scanner/
-        port_scanner.py
-tests/
-    test_port_scanner.py
+NetGuard/
+│
+├── netguard/
+│   ├── __init__.py
+│   │
+│   ├── models/
+│   │   ├── __init__.py
+│   │   └── scan_result.py
+│   │
+│   ├── scanner/
+│   │   └── port_scanner.py
+│   │
+│   └── cli.py
+│
+├── tests/
+│   └── test_port_scanner.py
+│
+├── .gitignore
+└── README.md
 ```
 
-## Authorized use
+## Technology Stack
 
-Use NetGuard only on systems and networks you own or have explicit permission to test. You are responsible for following applicable laws, policies, and rules of engagement.
+| Technology | Purpose |
+|---|---|
+| Python 3 | Core programming language |
+| Socket | TCP connection handling |
+| ThreadPoolExecutor | Concurrent scanning |
+| Dataclasses | Structured scan results |
+| Enum | Scan state management |
+| Unittest | Automated testing |
+| Git | Version control |
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/Liubomyr2006/NetGuard.git
+```
+
+Navigate to the project directory:
+
+```bash
+cd NetGuard
+```
+
+Create a virtual environment:
+
+```bash
+python -m venv .venv
+```
+
+Activate it on Windows:
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+No external dependencies are currently required for the core scanner.
+
+## Running Tests
+
+Run the complete test suite:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+Check the repository for whitespace errors:
+
+```bash
+git diff --check
+```
+
+## Architecture
+
+NetGuard follows a modular architecture that separates scanning logic, data models, and user interaction.
+
+**Models**
+
+Responsible for representing scan results and their states.
+
+- `ScanResult` — Stores information about an individual port scan.
+- `ScanState` — Defines the possible outcomes of a scan.
+
+**Scanner**
+
+Responsible for TCP connection handling, port validation, and scanning operations.
+
+**CLI**
+
+Provides a command-line interface for interacting with the scanning functionality.
+
+**Tests**
+
+Verify scanner behavior, input validation, and correct handling of open and closed ports.
+
+## Development Roadmap
+
+- [x] Initial TCP port scanner
+- [x] Concurrent port scanning
+- [x] Structured scan result model
+- [x] Scan state enumeration
+- [x] Port and timeout validation
+- [x] Unit tests for core scanning functionality
+- [x] Modular project architecture
+- [ ] Extended error handling
+- [ ] Improved CLI experience
+- [ ] Logging system
+- [ ] JSON and structured scan reports
+- [ ] Network discovery
+- [ ] Service identification
+- [ ] Security analysis and reporting
+
+## Security & Ethical Use
+
+NetGuard is intended for educational purposes and authorized security testing.
+
+Only scan systems and networks that you own or have explicit permission to test.
+
+Unauthorized scanning may violate applicable laws or organizational policies.
+
+## Project Status
+
+<ins>Active Development</ins>
+
+NetGuard is currently undergoing core architecture improvements, with a focus on reliability, clean code organization, and test coverage.
+
+New features will be introduced incrementally as the underlying components become stable.
+
+## Author
+
+**LiboDar**
+
+GitHub: [@Liubomyr2006](https://github.com/Liubomyr2006)
+
+---
