@@ -3,7 +3,7 @@ import socket
 import math
 
 from .scanner.port_scanner import scan_ports
-from . import __version__
+from .models import ScanState
 
 
 def resolve_addresses(target: str) -> list[str]:
@@ -49,12 +49,6 @@ def main():
         help="connection timeout in seconds (default 1.0)",
     )
 
-    parser.add_argument(
-        "--version",
-        action="version",
-        version=f"NetGuard {__version__}"
-    )
-
     args = parser.parse_args()
 
     try:
@@ -73,9 +67,19 @@ def main():
         parser.error(str(exc))
 
     open_ports = set()
+
     for address in addresses:
+        results = scan_ports(
+            address,
+            start_port,
+            end_port,
+            timeout=args.timeout,
+        )
+
         open_ports.update(
-            scan_ports(address, start_port, end_port, timeout=args.timeout)
+            result.port
+            for result in results
+            if result.state == ScanState.OPEN
         )
 
     print(f'target: {args.target}')

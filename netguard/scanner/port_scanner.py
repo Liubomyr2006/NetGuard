@@ -1,16 +1,56 @@
 import socket
+import time
 import math
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from ..models import ScanResult, ScanState
 
-def scan_port(host: str, port: int, timeout: float = 1.0) -> bool:
+
+def scan_port(
+        host: str,
+        port: int,
+        timeout: float = 1.0,
+    ) -> ScanResult:
+
+    if not host:
+        raise ValueError("Host Cannot be empty")
+
+    if not isinstance(port, int) or not (1 <= port <= 65535):
+        raise ValueError("Port must be between 1 and 65535")
+
+    if not math.isfinite(timeout) or timeout <= 0:
+        raise ValueError("timeout must be positive and f")
+
+    start_time = time.perf_counter()
+
     try:
         with socket.create_connection((host, port), timeout=timeout):
-            return True 
+            state = ScanState.OPEN
+            error = None
 
-    except (socket.timeout, ConnectionRefusedError, OSError):
-        return False
+    except ConnectionRefusedError:
+        state = ScanState.CLOSED
+        error = None
+
+    except TimeoutError:
+        state = ScanState.FILTERED
+        error = "Connection timed out"
+
+    except OSError as exc:
+        state = ScanState.ERROR
+        error = f"{type(exc).__name__}: {exc}"
+
+    response_time = time.perf_counter() - start_time
+
+    return ScanResult(
+        host=host,
+        port=port,
+        state=state,
+        response_time=response_time,
+        error=error,
+    )
+
 
 
 def scan_ports(
@@ -19,7 +59,7 @@ def scan_ports(
         end_port: int,
         timeout: float = 1.0,
         max_workers: int = 100
-) -> list[int]:
+) -> list[ScanResult]:
 
     if not host:
         raise ValueError("Host cannot be empty")
@@ -33,7 +73,7 @@ def scan_ports(
     if not (1 <= max_workers <= 200):
         raise ValueError("Workers must be between 1 and 200")
 
-    open_ports = []
+    results = []
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
 
@@ -45,8 +85,17 @@ def scan_ports(
         for future in as_completed(futures):
             port = futures[future]
 
-            if future.result():
-                open_ports.append(port)
-    
+            try:
+                result = future.result()
 
-    return sorted(open_ports)
+            except Exception as exc:
+                result = ScanResult(
+                    host=host,
+                    port=port,
+                    state=ScanState.ERROR,
+                    error=f"{type(exc).__name__}: {exc}",
+                )
+
+            results.append(result)
+    
+    return sorted(results, key=lambda result: result.port)
